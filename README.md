@@ -13,6 +13,8 @@
 ```shell
 docker compose up -d
 ```
+### API Document 접속
+- http://localhost:8080/swagger-ui.html
 
 ## 요구 사항 분석
 ### 채팅방 조회
@@ -32,6 +34,7 @@ sequenceDiagram
 sequenceDiagram
     loop Polling - 채팅 내역 업데이트
         Client ->> Chat: 채팅 조회(사용자 ID, 채팅방 ID)
+        Chat ->> Chat: 채팅방 접속 내역 저장(사용자 ID, 채팅방 ID)
         Chat -->> Client: 채팅 내역 (발송자, 발송시간, 내용)
     end
 ```
@@ -39,7 +42,15 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     Client ->> Chat: 채팅 발송(사용자 ID, 채팅방 ID, 내용)
+    Chat ->> Chat: 채팅방 상태 업데이트(채팅 내용)
     Chat -->> Client: 채팅 발송 완료
+```
+### 채팅방 최근 사용자 정보 Scheduling
+```mermaid
+sequenceDiagram
+    Scheduler ->> Chat: Trigger
+    Chat ->> Chat: 최근 30분 접속 정보 조회
+    Chat ->> Chat: 채팅방 최근 접속자 수 업데이트
 ```
 ## ERD
 ```mermaid
@@ -64,6 +75,13 @@ erDiagram
         string message
         date created_at
         date deleted_at
+    }
+    
+    chatRoomUserHistory {
+        long id
+        long user_id
+        long chat_room_id
+        date created_at
     }
     
     user ||--|{ chatMessage: send

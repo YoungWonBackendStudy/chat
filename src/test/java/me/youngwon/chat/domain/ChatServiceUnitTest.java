@@ -25,7 +25,7 @@ public class ChatServiceUnitTest {
     @DisplayName("채팅방 조회 성공")
     void testGetChatRooms() {
         //given
-        when(mockChatRepository.getChatRooms()).thenReturn(List.of(
+        when(mockChatRepository.getChatRoomsOrderByRecentUsersDesc()).thenReturn(List.of(
                 new ChatRoom("채팅방1")
         ));
 
@@ -46,8 +46,8 @@ public class ChatServiceUnitTest {
         chatService.makeChatRoom(chatUserId, "채팅방1");
 
         //then
-        verify(mockChatRepository).makeNewChatRoom(argThat(chatRoom -> {
-            assertThat(chatRoom.title()).isEqualTo("채팅방1");
+        verify(mockChatRepository).saveChatRoom(argThat(chatRoom -> {
+            assertThat(chatRoom.getTitle()).isEqualTo("채팅방1");
             return true;
         }));
     }
@@ -58,15 +58,21 @@ public class ChatServiceUnitTest {
         //given
         ChatRoom chatRoom = new ChatRoom(0L, "채팅방 1", 1L, "Test", new Date(), null);
         Long chatUserId = 0L;
+        when(mockChatRepository.getChatRoom(chatRoom.getId())).thenReturn(chatRoom);
         when(mockChatRepository.getChatMessages(chatRoom)).thenReturn(List.of(
-                new ChatMessage(0L, chatRoom.id(), chatUserId, "Test", new Date(), null)
+                new ChatMessage(0L, chatRoom.getId(), chatUserId, "Test", new Date(), null)
         ));
 
         //when
-        var chatsMessages = chatService.getChatsMessages(chatUserId, chatRoom.id());
+        var chatsMessages = chatService.getChatsMessages(chatUserId, chatRoom.getId());
 
         //then
         assertThat(chatsMessages).isNotEmpty();
+        verify(mockChatRepository).saveChatRoomUserHistory(argThat(chatRoomUserHistory -> {
+            assertThat(chatRoomUserHistory.userId()).isEqualTo(chatUserId);
+            assertThat(chatRoomUserHistory.chatRoom()).isEqualTo(chatRoom);
+            return true;
+        }));
     }
 
     @Test
@@ -75,6 +81,7 @@ public class ChatServiceUnitTest {
         //given
         Long chatRoomId = 0L;
         Long chatUserId = 0L;
+        when(mockChatRepository.getChatRoom(chatRoomId)).thenReturn(new ChatRoom(chatRoomId, "채팅방 1", 0L, "Test", new Date(), null));
 
         //when
         chatService.sendChatMessage(chatUserId, chatRoomId, "Test");
@@ -84,6 +91,30 @@ public class ChatServiceUnitTest {
             assertThat(newChatMessage.chatRoomId()).isEqualTo(chatRoomId);
             assertThat(newChatMessage.userId()).isEqualTo(chatUserId);
             assertThat(newChatMessage.message()).isEqualTo("Test");
+            return true;
+        }));
+    }
+
+    @Test
+    @DisplayName("채팅방 접속자 수 스케줄링")
+    void testSchedule() {
+        //given
+        when(mockChatRepository.getChatHistoriesIn30mins()).thenReturn(List.of(
+           new ChatRoomUserHistory(0L, new ChatRoom(0L, "", 0L, null, new Date(), null)),
+            new ChatRoomUserHistory(1L, new ChatRoom(0L, "", 0L, null, new Date(), null)),
+            new ChatRoomUserHistory(2L, new ChatRoom(0L, "", 0L, null, new Date(), null)),
+            new ChatRoomUserHistory(3L, new ChatRoom(0L, "", 0L, null, new Date(), null)),
+                new ChatRoomUserHistory(3L, new ChatRoom(0L, "", 0L, null, new Date(), null))
+        ));
+
+        //when
+        chatService.schedulerChatRoomActiveUser();
+
+        //then
+        verify(mockChatRepository).saveChatRooms(argThat(chatRooms -> {
+            assertThat(chatRooms).isNotEmpty();
+            assertThat(chatRooms.size()).isEqualTo(1);
+            assertThat(chatRooms.get(0).getRecentChatUsers()).isEqualTo(4);
             return true;
         }));
     }

@@ -3,6 +3,7 @@ package me.youngwon.chat.infra;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import me.youngwon.chat.domain.ChatMessage;
 
 import java.util.Date;
 
@@ -28,4 +29,17 @@ public class ChatMessageEntity {
 
     @Column(name = "deleted_at")
     Date deletedAt;
+
+    public ChatMessageEntity(ChatMessage chatMessage) {
+        this.id = chatMessage.id();
+        this.chatRoomId = chatMessage.chatRoomId();
+        this.userId = chatMessage.userId();
+        this.message = chatMessage.message();
+        this.createdAt = chatMessage.createdAt();
+        this.deletedAt = chatMessage.deletedAt();
+    }
+
+    public ChatMessage toDomain() {
+        return new ChatMessage(id, chatRoomId, userId, message, createdAt, deletedAt);
+    }
 }

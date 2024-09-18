@@ -6,9 +6,9 @@ public record ChatRoomDto(
         long id,
         String title,
         Long recentUserUsage,
-        Long recentChatMessage
+        String recentChatMessage
 ){
     public static ChatRoomDto of(ChatRoom chatRoom) {
-        return new ChatRoomDto(chatRoom.id(), chatRoom.title(), chatRoom.recentChatUsers(), chatRoom.recentChatUsers());
+        return new ChatRoomDto(chatRoom.getId(), chatRoom.getTitle(), chatRoom.getRecentChatUsers(), chatRoom.getRecentChatMessage());
     }
 }
