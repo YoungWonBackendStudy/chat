@@ -61,7 +61,7 @@ erDiagram
         long id
         long chat_room_id
         long user_id
-        string content
+        string message
         date created_at
         date deleted_at
     }

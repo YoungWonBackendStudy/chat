@@ -1,0 +1,10 @@
+services:
+  concert-reservation:
+    container_name: concert-reservation
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PROFILE: prod
+    ports:
+      - 8080:8080
