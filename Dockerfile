@@ -14,4 +14,4 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ENTRYPOINT ["java","-cp","app:app/lib/*", "-Dspring.profiles.active=${PROFILE}", "me.youngwon.chat.AnchorChatApplication"]
+ENTRYPOINT ["java","-cp","app:app/lib/*", "-Dspring.profiles.active=prod", "me.youngwon.chat.AnchorChatApplication"]
